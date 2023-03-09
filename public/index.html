@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Markdown Table Converter</title>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/file-saver/dist/FileSaver.min.js"></script>
+  </head>
+  <body>
+    <h1><a href="/">Markdown Table Converter</a></h1>
+    <form>
+      <label for="markdown-file">Upload Markdown File:</label>
+      <input type="file" id="markdown-file" accept=".md" required />
+    </form>
+    <button id="convert-button">Convert</button>
+    <hr/>
+    <h2>Converted CSV File</h2>
+    <div id="csv-table-container"></div>
+    <a href="#" id="csv-download-link">Download CSV File</a>
+    <br>
+    <h2>Converted Excel File</h2>
+    <div id="excel-table-container"></div>
+    <a href="#" id="excel-download-link">Download Excel File</a>
+    <script type="text/javascript" src="./js/index.js"></script>
+  </body>
+</html>
