@@ -5,12 +5,14 @@
     <title>Markdown Table Converter</title>
     <script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/file-saver/dist/FileSaver.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css">
   </head>
   <body>
-    <h1><a href="/">Markdown Table Converter</a></h1>
+    <h1>Markdown Table Converter</h1>
     <form>
-      <label for="markdown-file">Upload Markdown File:</label>
-      <input type="file" id="markdown-file" accept=".md" required />
+      <label for="markdown-file">Upload Markdown File:
+        <input type="file" id="markdown-file" accept=".md" required />
+      </label>
     </form>
     <button id="convert-button">Convert</button>
     <hr/>
