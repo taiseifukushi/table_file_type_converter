@@ -10,4 +10,4 @@ yarn http-server
 
 ## github pages
 
-https://husita-h.github.io/md_table_to_xlsx_converter_page/
+https://husita-h.github.io/table_file_type_converter/
