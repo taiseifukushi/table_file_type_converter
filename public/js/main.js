@@ -37,7 +37,7 @@ convertButton.addEventListener("click", () => {
 		fileType.processConvertFile(inputTableData);
 		;
 	}
-  reader.readAsText(file);
+  reader.readAsArrayBuffer(file);
 });
 
 // ##########################
@@ -94,6 +94,7 @@ function markdownBlob(markdownRows) {
 function insertDownloadData(data, extention) {
 	const container = document.getElementById(`${extention}-table-container`);
 	const link = document.getElementById(`${extention}-download-link`);
+	link.href = URL.createObjectURL(data);
 	link.download = `table.${extention}`;
 	container.innerHTML = "The conversion to file is complete.";
 };
@@ -118,7 +119,6 @@ function tableDataForMarkdown(markdownTable) {
 		}
 
 		if (rowPattern.test(row)) {
-			console.log("rowPattern", row);
 			const rowData = row
 				.trim()
 				.slice(1, -1)
@@ -138,7 +138,7 @@ function markdownToCsv(tableData) {
 		.map((row) => row.map((cell) => cell.value).join(","))
 		.join("\n");
 	const downloadData = csvBlob(csvData);
-	return insertDownloadData(downloadData);
+	return insertDownloadData(downloadData, "csv");
 }
 
 function markdownToExcel(tableData) {
@@ -148,7 +148,7 @@ function markdownToExcel(tableData) {
 	);
 	XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
 	const downloadData = excelBlob(workbook);
-	return insertDownloadData(downloadData);
+	return insertDownloadData(downloadData, "xlsx");
 }
 
 // ########################## csv ##########################
@@ -165,20 +165,19 @@ function csvToExcel(tableData) {
 		data
 	);
 	XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
-	const downloadData =  excelBlob(workbook);
-	return insertDownloadData(downloadData);
+	const downloadData = excelBlob(workbook);
+	return insertDownloadData(downloadData, "xlsx");
 }
 
 function csvToMarkdown(tableData) {
 	const data = tableData.split("\n").map((row) => row.split(","));
 	const markdownRows = data.map((row) => `|${row.join("|")}|`).join("\n");
 	const downloadData = markdownBlob(markdownRows);
-	return insertDownloadData(downloadData);
+	return insertDownloadData(downloadData, "markdown");
 }
 
 
 // ########################## excel ##########################
-
 function excelToOtherTable(sheet) {
 	excelToCsv(sheet);
 	excelToMarkdown(sheet);
@@ -188,8 +187,8 @@ function excelToCsv(sheetData) {
 	const workbook = XLSX.read(sheetData, { type: "binary" });
 	const worksheet = workbook.Sheets[workbook.SheetNames[0]];
 	const csvData = XLSX.utils.sheet_to_csv(worksheet);
-	const downloadData = excelBlob(csvData);
-	return insertDownloadData(downloadData);
+	const downloadData = csvBlob(csvData);
+	return insertDownloadData(downloadData, "csv");
 }
 
 function excelToMarkdown(sheetData) {
@@ -203,5 +202,5 @@ function excelToMarkdown(sheetData) {
 		.map((row) => `|${row.join("|")}|`)
 		.join("\n");
 	const downloadData = markdownBlob(markdownRows);
-	return insertDownloadData(downloadData);
+	return insertDownloadData(downloadData, "markdown");
 }
