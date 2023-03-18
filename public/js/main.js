@@ -6,17 +6,48 @@ const excelTableContainer = document.getElementById("excel-table-container");
 const excelDownloadLink = document.getElementById("excel-download-link");
 const markdownTableContainer = document.getElementById("markdown-table-container");
 const markdownDownloadLink = document.getElementById("markdown-download-link");
+const fileTypes = {
+	md: {
+		processConvertFile: (file) => {
+			markdownToOtherTable(file);
+		},
+	},
+	csv: {
+		processConvertFile: (file) => {},
+	},
+	xls: {
+		processConvertFile: (file) => {},
+	},
+	xlsx: {
+		processConvertFile: (file) => {},
+	},
+};
 
 convertButton.addEventListener("click", () => {
 	const file = fileInput.files[0];
 	const reader = new FileReader();
-	reader.onload = function () {
+	reader.onload = () => {
 		const inputTableData = reader.result;
-		console.log(file.name);
-		markdownToOtherTable(inputTableData);
+		const fileType = getUploadedFileExtension(file.name);
+		fileType.processConvertFile(inputTableData);
+		;
 	}
   reader.readAsText(file);
 });
+
+// ファイル種別をチェックし、各ファイルへの変換処理をアップロードされてファイルによって分岐させる
+function getUploadedFileExtension(filename) {
+  const extension = filename.split(".").pop().toLowerCase();
+  return (
+		fileTypes[extension] || {
+			processFile: () => { 
+				const massage = "Unknown file type.";
+				alert(massage);
+				console.error(massage);
+			}
+		}
+  );
+}
 
 // markdown
 function markdownToOtherTable(markdownTable) {
