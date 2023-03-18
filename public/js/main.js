@@ -37,7 +37,7 @@ convertButton.addEventListener("click", () => {
 		fileType.processConvertFile(inputTableData);
 		;
 	}
-  reader.readAsText(file);
+  reader.readAsArrayBuffer(file);
 });
 
 // ##########################
@@ -119,7 +119,6 @@ function tableDataForMarkdown(markdownTable) {
 		}
 
 		if (rowPattern.test(row)) {
-			console.log("rowPattern", row);
 			const rowData = row
 				.trim()
 				.slice(1, -1)
@@ -166,7 +165,7 @@ function csvToExcel(tableData) {
 		data
 	);
 	XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
-	const downloadData =  excelBlob(workbook);
+	const downloadData = excelBlob(workbook);
 	return insertDownloadData(downloadData, "xlsx");
 }
 
@@ -188,7 +187,7 @@ function excelToCsv(sheetData) {
 	const workbook = XLSX.read(sheetData, { type: "binary" });
 	const worksheet = workbook.Sheets[workbook.SheetNames[0]];
 	const csvData = XLSX.utils.sheet_to_csv(worksheet);
-	const downloadData = excelBlob(csvData);
+	const downloadData = csvBlob(csvData);
 	return insertDownloadData(downloadData, "csv");
 }
 
