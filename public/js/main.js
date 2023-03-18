@@ -13,7 +13,9 @@ const fileTypes = {
 		},
 	},
 	csv: {
-		processConvertFile: (file) => {},
+		processConvertFile: (file) => {
+			csvToOtherTable(file);
+		},
 	},
 	xls: {
 		processConvertFile: (file) => {},
@@ -35,7 +37,9 @@ convertButton.addEventListener("click", () => {
   reader.readAsText(file);
 });
 
+// ##########################
 // ファイル種別をチェックし、各ファイルへの変換処理をアップロードされてファイルによって分岐させる
+// ##########################
 function getUploadedFileExtension(filename) {
   const extension = filename.split(".").pop().toLowerCase();
   return (
@@ -49,14 +53,19 @@ function getUploadedFileExtension(filename) {
   );
 }
 
-// markdown
+// ##########################
+// 変換後のファイルをHTMLに挿入する
+// ##########################
+
+
+// ########################## markdown ##########################
 function markdownToOtherTable(markdownTable) {
-	const data = tableData(markdownTable);
+	const data = tableDataForMarkdown(markdownTable);
 	markdownToCsv(data);
 	markdownToExcel(data);
 }
 
-function tableData(markdownTable) {
+function tableDataForMarkdown(markdownTable) {
 	const rowPattern = new RegExp(/^\|(\s*[\w\s]+\s*\|)+$/);
 	const separatorPattern = new RegExp(/^\|(\s*[-:]+\s*\|)+$/);
 	const tableData = [];
@@ -125,4 +134,47 @@ function s2ab(s) {
 		view[i] = s.charCodeAt(i) & 0xff;
 	}
 	return buf;
+}
+
+// ########################## csv ##########################
+function csvToOtherTable(csvTable) {
+	csvToExcel(csvTable);
+	csvToMarkdown(csvTable);
+}
+
+function csvToExcel(tableData) {
+	// const worksheet = XLSX.utils.csv_to_sheet(tableData);
+	const data = Papa.parse(tableData).data;
+	const workbook = XLSX.utils.book_new();
+	const worksheet = XLSX.utils.sheet_add_aoa(
+		XLSX.utils.book_new().SheetNames,
+		data
+	);
+	XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
+	const excelBlob = new Blob(
+		[
+			s2ab(
+				XLSX.write(workbook, {
+					type: "binary",
+				})
+			),
+		],
+		{
+			type: "application/octet-stream",
+		}
+	);
+	excelDownloadLink.href = URL.createObjectURL(excelBlob);
+	excelDownloadLink.download = "table.xlsx";
+	excelTableContainer.innerHTML =
+		"The conversion to an Excel file is complete.";
+}
+
+function csvToMarkdown(tableData) {
+	const data = tableData.split("\n").map((row) => row.split(","));
+	const markdownRows = data.map((row) => `|${row.join("|")}|`).join("\n");
+	const markDownBlob = new Blob([markdownRows], { type: "text/markdown" });
+	markdownDownloadLink.href = URL.createObjectURL(markDownBlob);
+	markdownDownloadLink.download = "table.md";
+	markdownTableContainer.innerHTML =
+		"The conversion to an Markdown file is complete.";
 }
