@@ -12,6 +12,11 @@ const fileTypes = {
 			markdownToOtherTable(file);
 		},
 	},
+	markdown: {
+		processConvertFile: (file) => {
+			markdownToOtherTable(file);
+		},
+	},
 	csv: {
 		processConvertFile: (file) => {
 			csvToOtherTable(file);
@@ -54,9 +59,46 @@ function getUploadedFileExtension(filename) {
 }
 
 // ##########################
-// 変換後のファイルをHTMLに挿入する
+//  Blob オブジェクトへの変換し、HTMLへ挿入する
 // ##########################
+function csvBlob(csvData) {
+	return new Blob([csvData], { type: "text/csv" });
+}
 
+function excelBlob(workbook) {
+	return new Blob(
+		[
+			s2ab(
+				XLSX.write(workbook, {
+					type: "binary",
+				})
+			),
+		],
+		{
+			type: "application/octet-stream",
+		}
+	);
+}
+
+function s2ab(s) {
+	const buf = new ArrayBuffer(s.length);
+	const view = new Uint8Array(buf);
+	for (let i = 0; i !== s.length; ++i) {
+		view[i] = s.charCodeAt(i) & 0xff;
+	}
+	return buf;
+}
+
+function markdownBlob(markdownRows) {
+	return new Blob([markdownRows], { type: "text/markdown" });
+}
+
+function insertDownloadData(data, extention) {
+	const container = document.getElementById(`${extention}-table-container`);
+	const link = document.getElementById(`${extention}-download-link`);
+	link.download = `table.${extention}`;
+	container.innerHTML = "The conversion to file is complete.";
+};
 
 // ########################## markdown ##########################
 function markdownToOtherTable(markdownTable) {
@@ -97,10 +139,8 @@ function markdownToCsv(tableData) {
 	const csvData = tableData
 		.map((row) => row.map((cell) => cell.value).join(","))
 		.join("\n");
-	const csvBlob = new Blob([csvData], { type: "text/csv" });
-	csvDownloadLink.href = URL.createObjectURL(csvBlob);
-	csvDownloadLink.download = "table.csv";
-	csvTableContainer.innerHTML = "The conversion to an CSV file is complete.";
+	const downloadData = csvBlob(csvData);
+	return insertDownloadData(downloadData);
 }
 
 function markdownToExcel(tableData) {
@@ -109,31 +149,8 @@ function markdownToExcel(tableData) {
 		tableData.map((row) => row.map((cell) => cell.value))
 	);
 	XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
-	const excelBlob = new Blob(
-		[
-			s2ab(
-				XLSX.write(workbook, {
-					type: "binary",
-				})
-			),
-		],
-		{
-			type: "application/octet-stream",
-		}
-	);
-	excelDownloadLink.href = URL.createObjectURL(excelBlob);
-	excelDownloadLink.download = "table.xlsx";
-	excelTableContainer.innerHTML =
-		"The conversion to an Excel file is complete.";
-}
-
-function s2ab(s) {
-	const buf = new ArrayBuffer(s.length);
-	const view = new Uint8Array(buf);
-	for (let i = 0; i !== s.length; ++i) {
-		view[i] = s.charCodeAt(i) & 0xff;
-	}
-	return buf;
+	const downloadData = excelBlob(workbook);
+	return insertDownloadData(downloadData);
 }
 
 // ########################## csv ##########################
@@ -143,7 +160,6 @@ function csvToOtherTable(csvTable) {
 }
 
 function csvToExcel(tableData) {
-	// const worksheet = XLSX.utils.csv_to_sheet(tableData);
 	const data = Papa.parse(tableData).data;
 	const workbook = XLSX.utils.book_new();
 	const worksheet = XLSX.utils.sheet_add_aoa(
@@ -151,30 +167,13 @@ function csvToExcel(tableData) {
 		data
 	);
 	XLSX.utils.book_append_sheet(workbook, worksheet, "Sheet1");
-	const excelBlob = new Blob(
-		[
-			s2ab(
-				XLSX.write(workbook, {
-					type: "binary",
-				})
-			),
-		],
-		{
-			type: "application/octet-stream",
-		}
-	);
-	excelDownloadLink.href = URL.createObjectURL(excelBlob);
-	excelDownloadLink.download = "table.xlsx";
-	excelTableContainer.innerHTML =
-		"The conversion to an Excel file is complete.";
+	const downloadData =  excelBlob(workbook);
+	return insertDownloadData(downloadData);
 }
 
 function csvToMarkdown(tableData) {
 	const data = tableData.split("\n").map((row) => row.split(","));
 	const markdownRows = data.map((row) => `|${row.join("|")}|`).join("\n");
-	const markDownBlob = new Blob([markdownRows], { type: "text/markdown" });
-	markdownDownloadLink.href = URL.createObjectURL(markDownBlob);
-	markdownDownloadLink.download = "table.md";
-	markdownTableContainer.innerHTML =
-		"The conversion to an Markdown file is complete.";
+	const downloadData = markdownBlob(markdownRows);
+	return insertDownloadData(downloadData);
 }
