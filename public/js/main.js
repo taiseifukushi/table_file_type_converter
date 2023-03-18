@@ -1,11 +1,5 @@
 const fileInput = document.getElementById("upload-file");
 const convertButton = document.getElementById("convert-button");
-const csvTableContainer = document.getElementById("csv-table-container");
-const csvDownloadLink = document.getElementById("csv-download-link");
-const excelTableContainer = document.getElementById("excel-table-container");
-const excelDownloadLink = document.getElementById("excel-download-link");
-const markdownTableContainer = document.getElementById("markdown-table-container");
-const markdownDownloadLink = document.getElementById("markdown-download-link");
 const fileTypes = {
 	md: {
 		processConvertFile: (file) => {
@@ -23,10 +17,14 @@ const fileTypes = {
 		},
 	},
 	xls: {
-		processConvertFile: (file) => {},
+		processConvertFile: (file) => {
+			excelToOtherTable(file);
+		},
 	},
 	xlsx: {
-		processConvertFile: (file) => {},
+		processConvertFile: (file) => {
+			excelToOtherTable(file);
+		},
 	},
 };
 
@@ -174,6 +172,36 @@ function csvToExcel(tableData) {
 function csvToMarkdown(tableData) {
 	const data = tableData.split("\n").map((row) => row.split(","));
 	const markdownRows = data.map((row) => `|${row.join("|")}|`).join("\n");
+	const downloadData = markdownBlob(markdownRows);
+	return insertDownloadData(downloadData);
+}
+
+
+// ########################## excel ##########################
+
+function excelToOtherTable(sheet) {
+	excelToCsv(sheet);
+	excelToMarkdown(sheet);
+}
+
+function excelToCsv(sheetData) {
+	const workbook = XLSX.read(sheetData, { type: "binary" });
+	const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+	const csvData = XLSX.utils.sheet_to_csv(worksheet);
+	const downloadData = excelBlob(csvData);
+	return insertDownloadData(downloadData);
+}
+
+function excelToMarkdown(sheetData) {
+	const workbook = XLSX.read(sheetData, { type: "binary" });
+	const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+	const tableData = XLSX.utils.sheet_to_json(worksheet, {
+		header: 1,
+		raw: false,
+	});
+	const markdownRows = tableData
+		.map((row) => `|${row.join("|")}|`)
+		.join("\n");
 	const downloadData = markdownBlob(markdownRows);
 	return insertDownloadData(downloadData);
 }
